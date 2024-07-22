@@ -1,31 +1,62 @@
-import React, { useState, useEffect } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+
+import { useParams, useNavigate, Link } from "react-router-dom";
+
+import Navbar from "../../components/Navbar";
 
 import Categories from "../../components/Categories";
-import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
+
+import blogService from "../../services/blogService";
+import SuccessToast from "../../components/SuccessToast";
+import ErrorToast from "../../components/ErrorToast";
+import Loading from "../../components/Loading";
 
 import "./index.css";
 
-const data = require("../../dummy-data.json");
-const blogsData = data.blogPosts.reverse();
-
 export default function BlogPage() {
-  const { blogId } = useParams();
   const navigate = useNavigate();
-  const [blog, setBlog] = useState();
+  const { blogId } = useParams();
+
+  const [blog, setBlog] = useState(null);
+  const [isError, setIsError] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const blogRes = blogsData.find((blog) => blog.id === parseInt(blogId));
-    setBlog(blogRes);
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        const blog = await blogService.fetchBlogByID(blogId);
+        setBlog(blog.data);
+        setMessage(blog.message);
+        setIsLoading(false);
+      } catch (error) {
+        setIsError(true);
+        setMessage(error.message || error);
+        setIsLoading(false);
+      }
+    };
+    fetchData();
   }, [blogId]);
 
-  const navigateToAuthorProfile = () => {
-    navigate("/profile");
+  const resetSuccess = () => {
+    setIsSuccess(false);
+    setMessage("");
   };
 
-  if (!blog) {
-    return null;
+  const resetError = () => {
+    setIsError(false);
+    setMessage("");
+  };
+
+  const navigateToAuthorProfile = () => {
+    navigate("/profile/" + blog.author.id);
+  };
+
+  if (isLoading || !blog) {
+    return <Loading />;
   }
 
   return (
@@ -45,7 +76,7 @@ export default function BlogPage() {
                   </Link>
                 </p>
                 <p>{blog.description}</p>
-                <Categories blog={blog} />
+                <Categories blogPost={blog} />
               </div>
               <hr />
               {blog.content.map((content, index) => {
@@ -70,6 +101,8 @@ export default function BlogPage() {
         </div>
       </main>
       <Footer />
+      <SuccessToast show={isSuccess} message={message} onClose={resetSuccess} />
+      <ErrorToast show={isError} message={message} onClose={resetError} />
     </>
   );
 }

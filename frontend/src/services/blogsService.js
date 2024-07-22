@@ -27,9 +27,59 @@ const getBlogsByCategoryId = async (categoryId) => {
   }
 };
 
+
+const createBlog = async (blog) => {
+  try {
+    const res = await fetch("http://localhost:8000/api/blogs",  {
+      method: "POST",
+      body: JSON.stringify(blog),});
+    if (!res.ok) {
+      throw Error(res.statusText);
+    }
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    throw Error(err);
+  }
+};
+
+
+const updateBlog = async (blog) => {
+  try {
+    const res = await fetch("http://localhost:8000/api/blogs",  {
+      method: "PUT",
+      body: JSON.stringify(blog),});
+    if (!res.ok) {
+      throw Error(res.statusText);
+    }
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    throw Error(err);
+  }
+};
+
+const deleteBlog = async (id) => {
+  try {
+    const res = await fetch("http://localhost:8000/api/blogs",  {
+      method: "DELETE",
+      body: JSON.stringify(id),});
+    if (!res.ok) {
+      throw Error(res.statusText);
+    }
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    throw Error(err);
+  }
+};
+
 const blogsService = {
   getBlogs,
   getBlogsByCategoryId,
+  createBlog,
+  updateBlog,
+  deleteBlog,
 };
 
 export default blogsService;
